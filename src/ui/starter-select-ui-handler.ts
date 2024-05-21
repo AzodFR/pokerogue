@@ -104,15 +104,15 @@ function getValueReductionCandyCounts(baseValue: integer): [integer, integer] {
 }
 
 const gens = [
-    i18next.t("starterSelectUiHandler:gen1"),
-    i18next.t("starterSelectUiHandler:gen2"),
-    i18next.t("starterSelectUiHandler:gen3"),
-    i18next.t("starterSelectUiHandler:gen4"),
-    i18next.t("starterSelectUiHandler:gen5"),
-    i18next.t("starterSelectUiHandler:gen6"),
-    i18next.t("starterSelectUiHandler:gen7"),
-    i18next.t("starterSelectUiHandler:gen8"),
-    i18next.t("starterSelectUiHandler:gen9")
+  i18next.t("starterSelectUiHandler:gen1"),
+  i18next.t("starterSelectUiHandler:gen2"),
+  i18next.t("starterSelectUiHandler:gen3"),
+  i18next.t("starterSelectUiHandler:gen4"),
+  i18next.t("starterSelectUiHandler:gen5"),
+  i18next.t("starterSelectUiHandler:gen6"),
+  i18next.t("starterSelectUiHandler:gen7"),
+  i18next.t("starterSelectUiHandler:gen8"),
+  i18next.t("starterSelectUiHandler:gen9")
 ];
 
 export default class StarterSelectUiHandler extends MessageUiHandler {
@@ -275,7 +275,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     this.pokemonUncaughtText.setOrigin(0, 0);
     this.starterSelectContainer.add(this.pokemonUncaughtText);
 
-    
+
     // The position should be set per language
     let starterInfoXPos = textSettings?.starterInfoXPos || 31;
     let starterInfoYOffset = textSettings?.starterInfoYOffset || 0;
@@ -1071,7 +1071,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
               success = true;
             }
             break;
-           case Button.CYCLE_VARIANT:
+          case Button.CYCLE_VARIANT:
             if (this.canCycleVariant) {
               let newVariant = props.variant;
               do {
@@ -1094,10 +1094,20 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
           case Button.UP:
             if (row)
               success = this.setCursor(this.cursor - 9);
+            else {
+              this.setGenMode(true);
+              this.setCursor(this.genCursor - 1);
+              success = this.setGenMode(false);
+            }
             break;
           case Button.DOWN:
             if (row < rows - 2 || (row < rows - 1 && this.cursor % 9 <= (genStarters - 1) % 9))
               success = this.setCursor(this.cursor + 9);
+            else {
+              this.setGenMode(true);
+              this.setCursor(this.genCursor + 1);
+              success = this.setGenMode(false);
+            }
             break;
           case Button.LEFT:
             if (this.cursor % 9)
@@ -1207,14 +1217,23 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
       changed = this.genCursor !== cursor;
 
       let genCursorWithScroll = this.getGenCursorWithScroll();
-
-      if (!cursor && this.genScrollCursor) {
+      if (cursor < 0) {
+        this.genScrollCursor = gens.length - 3;
+        cursor = 2;
+        this.updateGenOptions();
+      } else if (!cursor && this.genScrollCursor) {
         this.genScrollCursor--;
         cursor++;
         this.updateGenOptions();
-      } else if (cursor === 2 && this.genScrollCursor < gens.length - 3) {
-        this.genScrollCursor++;
-        cursor--;
+      } else if (cursor === 2) {
+        if (this.genScrollCursor + 1 >= gens.length - 3) {
+          this.genScrollCursor = 0;
+          cursor = 0;
+        }
+        else if (this.genScrollCursor < gens.length - 3) {
+          this.genScrollCursor++;
+          cursor--;
+        }
         this.updateGenOptions();
       }
 
@@ -1273,17 +1292,17 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
   updateGenOptions(): void {
     let text = '';
     for (let g = this.genScrollCursor; g <= this.genScrollCursor + 2; g++) {
-        let optionText = '';
-        if (g === this.genScrollCursor && this.genScrollCursor)
-            optionText = '↑';
-        else if (g === this.genScrollCursor + 2 && this.genScrollCursor < gens.length - 3)
-            optionText = '↓'
-        else
-            optionText = i18next.t(`starterSelectUiHandler:gen${g + 1}`);
-        text += `${text ? '\n' : ''}${optionText}`;
+      let optionText = '';
+      if (g === this.genScrollCursor && this.genScrollCursor)
+        optionText = '↑';
+      else if (g === this.genScrollCursor + 2 && this.genScrollCursor < gens.length - 3)
+        optionText = '↓'
+      else
+        optionText = i18next.t(`starterSelectUiHandler:gen${g + 1}`);
+      text += `${text ? '\n' : ''}${optionText}`;
     }
     this.genOptionsText.setText(text);
-}
+  }
 
   setGenMode(genMode: boolean): boolean {
     this.genCursorObj.setVisible(genMode && !this.startCursorObj.visible);
@@ -1623,12 +1642,12 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
         // Consolidate move data if it contains an incompatible move
         if (this.starterMoveset.length < 4 && this.starterMoveset.length < availableStarterMoves.length)
           this.starterMoveset.push(...availableStarterMoves.filter(sm => this.starterMoveset.indexOf(sm) === -1).slice(0, 4 - this.starterMoveset.length));
-        
+
         // Remove duplicate moves
         this.starterMoveset = this.starterMoveset.filter(
           (move, i) => {
             return this.starterMoveset.indexOf(move) === i;
-          }) as StarterMoveset;        
+          }) as StarterMoveset;
 
         const speciesForm = getPokemonSpeciesForm(species.speciesId, formIndex);
 
